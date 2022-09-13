@@ -7,26 +7,26 @@
 #include "carro.h"
 
 //Characteristics of OLED
-U8G2_SH1106_128X64_NONAME_1_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);
+U8G2_SH1106_128X64_NONAME_1_HW_I2C u8g2(U8G2_R0, /* reset=*/U8X8_PIN_NONE);
 
 //Variables to use
-float diameter = 0.24;                            //Wheel diameter in meters
-float ms = 0;                                     //Velocity m/s
-float velocidad = 0;                              //Velocity kmh
-int b_OT = 9;                                     //OT button pin
-float bState_OT = 0;                              //OT button state
-float timer_OT = 0;                               //OT on timer
-bool state_OT = false;                            //OT state
-int availability_OT = 0;                          //OT availability
-float countdown = 0;                              //OT time remaining
-int LM3914 = 0;                                   //PWM value for LEDs
-int relay = 8;                                    //Relay pin
-int leds = 6;                                     //LEDs pin
-int bShowMode = 12;                               //Button showmode
-int brake = 10;                                   //Brake input
-bool showState = false;                               //Show State mode
-int firstpress = 0;                                   //Count of first press
-int newtime = 0;                                      //New time
+float diameter = 0.24;    //Wheel diameter in meters
+float ms = 0;             //Velocity m/s
+float velocidad = 0;      //Velocity kmh
+int b_OT = 9;             //OT button pin
+float bState_OT = 0;      //OT button state
+float timer_OT = 0;       //OT on timer
+bool state_OT = false;    //OT state
+int availability_OT = 0;  //OT availability
+float countdown = 0;      //OT time remaining
+int LM3914 = 0;           //PWM value for LEDs
+int relay = 8;            //Relay pin
+int leds = 6;             //LEDs pin
+int bShowMode = 12;       //Button showmode
+int brake = 10;           //Brake input
+bool showState = false;   //Show State mode
+int firstpress = 0;       //Count of first press
+int newtime = 0;          //New time
 //
 int radio = 56;
 int altura = 92;
@@ -44,9 +44,9 @@ void setup() {
   pinMode(brake, INPUT);
   pinMode(b_OT, INPUT);
   pinMode(relay, OUTPUT);
-  pinMode(leds, OUTPUT);                                  //wait for the OLED to power up
+  pinMode(leds, OUTPUT);  //wait for the OLED to power up
   u8g2.begin();
-  digitalWrite(relay, !state_OT);                 //Relay starts off
+  digitalWrite(relay, !state_OT);  //Relay starts off
   FreqCount.begin(1000);
 }
 
@@ -54,7 +54,7 @@ void loop() {
   if (digitalRead(bShowMode) == 0) {
     firstpress = millis();
     Serial.print(firstpress);
-    while(digitalRead(bShowMode) == 0) {
+    while (digitalRead(bShowMode) == 0) {
       newtime = millis();
       Serial.println(newtime - firstpress);
     }
@@ -63,26 +63,24 @@ void loop() {
     }
   }
   if (showState == false) {
-    digitalWrite(relay, !state_OT);                 //Toggle relay por seguridad
+    digitalWrite(relay, !state_OT);  //Toggle relay por seguridad
     if (FreqCount.available()) {
       velocity();
     }
     //Sección botones
-        if (digitalRead(brake == 1)) {
-          if (state_OT == true) {
-            digitalWrite(leds, 0);
-            state_OT = false;
-          }
-        }
-    else if (digitalRead(b_OT) == 0 && state_OT == false) {
+    if (digitalRead(brake == 1)) {
+      if (state_OT == true) {
+        digitalWrite(leds, 0);
+        state_OT = false;
+      }
+    } else if (digitalRead(b_OT) == 0 && state_OT == false) {
       while (digitalRead(b_OT) == 0) {
-      }       //No empieza hasta que se libera y no se alterna
+      }  //No empieza hasta que se libera y no se alterna
       state_OT = true;
       bState_OT = millis();
-    }
-    else if (digitalRead(b_OT) == 0 && state_OT == true) {
+    } else if (digitalRead(b_OT) == 0 && state_OT == true) {
       while (digitalRead(b_OT) == 0) {
-      }       //No empieza hasta que se libera y no se alterna
+      }  //No empieza hasta que se libera y no se alterna
       digitalWrite(leds, 0);
       state_OT = false;
     }
@@ -91,13 +89,12 @@ void loop() {
       func_OT();
     }
     infodisplay();
-  }
-  else if (showState == true) {
+  } else if (showState == true) {
     showMode();
   }
 }
 
-void velocity() {
+void velocity() { 
   unsigned long count = (FreqCount.read());
   ms = (PI * diameter * count);
   velocidad = ms * 3.6;
@@ -122,7 +119,7 @@ void func_OT() {
   }
 }
 
-void infodisplay() {
+void infodisplay() {  //sensors information display
   u8g2.firstPage();
   do {
     //u8g2.setFont(u8g2_font_luRS24_tr);
@@ -148,7 +145,7 @@ void infodisplay() {
   } while (u8g2.nextPage());
 }
 
-void showMode() {
+void showMode() {  //Animation of the teams LOGO
   for (int pos = -70; pos < 160; pos++) {
     u8g2.firstPage();
     u8g2.setBitmapMode(1);
@@ -156,13 +153,11 @@ void showMode() {
       if (pos == 21) {
         u8g2.drawXBMP(22, 0, shield_width, shield_height, shield_bits);
         u8g2.drawXBMP(pos, 0, carStop_width, carStop_height, carStop_bits);
-      }
-      else {
+      } else {
         u8g2.drawXBMP(22, 0, shield_width, shield_height, shield_bits);
         if (pos % 2) {
           u8g2.drawXBMP(pos, 0, car1_width, car1_height, car1_bits);
-        }
-        else {
+        } else {
           u8g2.drawXBMP(pos, 0, car2_width, car2_height, car2_bits);
         }
       }

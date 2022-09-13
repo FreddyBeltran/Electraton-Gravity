@@ -1,5 +1,5 @@
-#ifndef carro_H_
-#define carro_H_
+#ifndef carro_h
+#define carro_h
 
 #define shield_width 79
 #define shield_height 64

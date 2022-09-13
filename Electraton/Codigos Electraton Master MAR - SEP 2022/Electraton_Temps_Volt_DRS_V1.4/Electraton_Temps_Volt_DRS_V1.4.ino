@@ -5,48 +5,48 @@
 #include <Wire.h>
 #include <Arduino.h>
 #include <U8g2lib.h>
-#include <Adafruit_MLX90614.h> //Melexis
+#include <Adafruit_MLX90614.h>  //Melexis
 #include "patros.h"
 
 //Declaracion de MLX
-Adafruit_MLX90614 termoDI = Adafruit_MLX90614(); // DI = Delantero Izquierdo
-Adafruit_MLX90614 termoDD = Adafruit_MLX90614(); // DD = Delantero Derecho
-Adafruit_MLX90614 termoTI = Adafruit_MLX90614(); // TI = Trasero Izquierdo
-Adafruit_MLX90614 termoTD = Adafruit_MLX90614(); // TD = Trasero Derecho
+Adafruit_MLX90614 termoDI = Adafruit_MLX90614();  // DI = Delantero Izquierdo
+Adafruit_MLX90614 termoDD = Adafruit_MLX90614();  // DD = Delantero Derecho
+Adafruit_MLX90614 termoTI = Adafruit_MLX90614();  // TI = Trasero Izquierdo
+Adafruit_MLX90614 termoTD = Adafruit_MLX90614();  // TD = Trasero Derecho
 
 //i2c address space
 //U8G2_SSD1306_128X64_NONAME_1_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);
-U8G2_SH1106_128X64_NONAME_1_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);
+U8G2_SH1106_128X64_NONAME_1_HW_I2C u8g2(U8G2_R0, /* reset=*/U8X8_PIN_NONE);
 
 //Variables to use
-int b_DRS = 9;                                        //Button DRS
-int p_DRS = 10;                                        //Braking pedal
-int pin_DRS=6;                                        //PWM drs
-bool state_DRS = false;                               //State of DRS active or not
-int BV1 = A0, BV2 = A1, BV3 = A2, BV4 = A3;           //Battery, analog a0-a3
-int B4State, B3State, B2State, B1State = 0;           //Button states
-double B1Value, B2Value, B3Value, B4Value = 0;        //Batterry Values 1-4
-double BATVAL = 0;                                    //Battery Values
-float temp1 = 0, temp2 = 58.51, temp3 = 365.1, temp4 = 12.521; //Temparature values
-int bShowMode = 12;                                   //Boton de showmode
-bool showState = false;                               //Show State mode
-int firstpress = 0;                                   //Count of first press
-int newtime = 0;                                      //New time
+int b_DRS = 9;                                                  //Button DRS
+int p_DRS = 10;                                                 //Braking pedal
+int pin_DRS = 6;                                                //PWM drs
+bool state_DRS = false;                                         //State of DRS active or not
+int BV1 = A0, BV2 = A1, BV3 = A2, BV4 = A3;                     //Battery, analog a0-a3
+int B4State, B3State, B2State, B1State = 0;                     //Button states
+double B1Value, B2Value, B3Value, B4Value = 0;                  //Batterry Values 1-4
+double BATVAL = 0;                                              //Battery Values
+float temp1 = 0, temp2 = 58.51, temp3 = 365.1, temp4 = 12.521;  //Temparature values
+int bShowMode = 12;                                             //Boton de showmode
+bool showState = false;                                         //Show State mode
+int firstpress = 0;                                             //Count of first press
+int newtime = 0;                                                //New time
 float tempDI = 0.0, tempDD = 0.0, tempTI = 0.0, tempTD = 0.0;
 
 
 
 void setup() {
   Serial.begin(57600);
-  
+
   pinMode(b_DRS, INPUT);
   pinMode(p_DRS, INPUT);
   pinMode(pin_DRS, OUTPUT);
   pinMode(bShowMode, INPUT);
-  termoDI.begin(0x5A);//Melexi Delantero Izquierdo 0x5A
-  termoDD.begin(0x5B);//Melexi Delantero Derecho 0x5B
-  termoTI.begin(0x5C);//Melexi Trasero Izquierdo 0x5C
-  termoTD.begin(0x5D);//Melexi Trasero Derecho 0x5D
+  termoDI.begin(0x5A);  //Melexi Delantero Izquierdo 0x5A
+  termoDD.begin(0x5B);  //Melexi Delantero Derecho 0x5B
+  termoTI.begin(0x5C);  //Melexi Trasero Izquierdo 0x5C
+  termoTD.begin(0x5D);  //Melexi Trasero Derecho 0x5D
   u8g2.setBusClock(100000);
   u8g2.begin();
   delay(200);
@@ -70,11 +70,10 @@ void loop() {
     //    //DRS functionality
     if (digitalRead(b_DRS) == LOW && state_DRS == false) {
       while (digitalRead(b_DRS) == LOW) {
-//        DRS_ON();
+        //        DRS_ON();
       }
 
-    }
-    else if ((digitalRead(b_DRS) == LOW || digitalRead(p_DRS) == HIGH) && state_DRS == true) {
+    } else if ((digitalRead(b_DRS) == LOW || digitalRead(p_DRS) == HIGH) && state_DRS == true) {
       while (digitalRead(b_DRS) == LOW || digitalRead(p_DRS) == HIGH) {
         DRS_OFF();
       }
@@ -85,7 +84,6 @@ void loop() {
   else if (showState == true) {
     showMode();
   }
-
 }
 
 void VB() {
@@ -102,21 +100,20 @@ void VB() {
 }
 
 void temp() {
-  tempDI = termoDI.readObjectTempC(); //0x5A
+  tempDI = termoDI.readObjectTempC();  //0x5A
   Serial.println(tempDI);
-  tempDD = termoDD.readObjectTempC(); //0x5B
+  tempDD = termoDD.readObjectTempC();  //0x5B
   Serial.println(tempDD);
-  tempTI = termoTI.readObjectTempC(); //0x5C
+  tempTI = termoTI.readObjectTempC();  //0x5C
   Serial.println(tempTI);
-  tempTD = termoTD.readObjectTempC(); //0x5D
+  tempTD = termoTD.readObjectTempC();  //0x5D
   Serial.println(tempTD);
-
 }
 
 void DRS_ON() {
   //delay(100);
   state_DRS = true;
-  analogWrite(pin_DRS,255);
+  analogWrite(pin_DRS, 255);
   VB();
   temp();
   infodisplay();
@@ -125,7 +122,7 @@ void DRS_ON() {
 void DRS_OFF() {
   //delay(100);
   state_DRS = false;
-  analogWrite(pin_DRS,255);
+  analogWrite(pin_DRS, 255);
   VB();
   temp();
   infodisplay();
@@ -168,7 +165,7 @@ void infodisplay() {
   } while (u8g2.nextPage());
 }
 
-void showMode() {
+void showMode() {  //animation of the sponsors logos
 
   u8g2.firstPage();
   do {
@@ -181,4 +178,6 @@ void showMode() {
     u8g2.drawXBMP(12, 0, moldem_width, moldem_height, moldem_bits);
   } while (u8g2.nextPage());
   delay(3000);
+
+  //
 }
