@@ -175,6 +175,12 @@ void showMode() {  //animation of the sponsors logos
 
   u8g2.firstPage();
   do {
+    u8g2.drawXBMP( 0, 0, richie_width, richie_height, richie_bits);
+  } while (u8g2.nextPage());
+  delay(3000);
+
+  u8g2.firstPage();
+  do {
     u8g2.drawXBMP(12, 0, moldem_width, moldem_height, moldem_bits);
   } while (u8g2.nextPage());
   delay(3000);
