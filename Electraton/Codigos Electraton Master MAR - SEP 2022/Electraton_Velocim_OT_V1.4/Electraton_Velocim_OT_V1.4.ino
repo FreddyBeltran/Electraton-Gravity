@@ -1,7 +1,3 @@
-//Librerias
-#include <SPI.h>
-#include <Wire.h>
-#include <Arduino.h>
 #include <U8g2lib.h>
 #include <FreqCount.h>
 #include "carro.h"
@@ -14,13 +10,12 @@ float diameter = 0.24;    //Wheel diameter in meters
 float ms = 0;             //Velocity m/s
 float velocidad = 0;      //Velocity kmh
 int b_OT = 9;             //OT button pin
-float bState_OT = 0;      //OT button state
+float initialTime_OT = 0;      //OT button state
 float timer_OT = 0;       //OT on timer
 bool state_OT = false;    //OT state
-int availability_OT = 0;  //OT availability
+int availability_OT = 0;  //OT availability  //implementar la disponibilidad de bateria para no drenar las celdas
 float countdown = 0;      //OT time remaining
 int LM3914 = 0;           //PWM value for LEDs
-int relay = 8;            //Relay pin
 int leds = 6;             //LEDs pin
 int bShowMode = 12;       //Button showmode
 int brake = 10;           //Brake input
@@ -43,55 +38,44 @@ void setup() {
   pinMode(bShowMode, INPUT);
   pinMode(brake, INPUT);
   pinMode(b_OT, INPUT);
-  pinMode(relay, OUTPUT);
   pinMode(leds, OUTPUT);  //wait for the OLED to power up
   u8g2.begin();
-  digitalWrite(relay, !state_OT);  //Relay starts off
   FreqCount.begin(1000);
 }
 
 void loop() {
   if (digitalRead(bShowMode) == 0) {
     firstpress = millis();
-    Serial.print(firstpress);
     while (digitalRead(bShowMode) == 0) {
       newtime = millis();
-      Serial.println(newtime - firstpress);
     }
     if (newtime - firstpress >= 3000) {
-      showState = true;
+      showMode();
     }
   }
-  if (showState == false) {
-    digitalWrite(relay, !state_OT);  //Toggle relay por seguridad
+  else {
     if (FreqCount.available()) {
       velocity();
     }
     //Sección botones
-    if (digitalRead(brake == 1)) {
+    if (digitalRead(brake)) {
       if (state_OT == true) {
-        digitalWrite(leds, 0);
+        digitalWrite(leds, 0); //checar que valor prende los leds 0/1 O NO VA
         state_OT = false;
       }
     } else if (digitalRead(b_OT) == 0 && state_OT == false) {
       while (digitalRead(b_OT) == 0) {
       }  //No empieza hasta que se libera y no se alterna
       state_OT = true;
-      bState_OT = millis();
+      initialTime_OT = millis();
+      func_OT();
     } else if (digitalRead(b_OT) == 0 && state_OT == true) {
       while (digitalRead(b_OT) == 0) {
       }  //No empieza hasta que se libera y no se alterna
-      digitalWrite(leds, 0);
+      digitalWrite(leds, 0); // checar que valor prende los leds 0/1 O NO VA
       state_OT = false;
     }
-    //Sección OT
-    if (state_OT == true) {
-      func_OT();
-    }
-    infodisplay();
-  } else if (showState == true) {
-    showMode();
-  }
+  infodisplay();}
 }
 
 void velocity() { 
@@ -111,8 +95,8 @@ void velocity() {
 void func_OT() {
   countdown = ((30000 - timer_OT) / 1000);
   LM3914 = ((countdown + 5) * 3.1);
-  analogWrite(leds, (LM3914));
-  timer_OT = (millis()) - (bState_OT);
+  analogWrite(leds, LM3914);
+  timer_OT = (millis()) - (initialTime_OT);
   if (timer_OT >= 30000) {
     state_OT = false;
     analogWrite(leds, 0);
@@ -141,7 +125,6 @@ void infodisplay() {  //sensors information display
       u8g2.setCursor(4, 60);
       u8g2.print(countdown, 0);
     }
-
   } while (u8g2.nextPage());
 }
 
@@ -161,7 +144,8 @@ void showMode() {  //Animation of the teams LOGO
           u8g2.drawXBMP(pos, 0, car2_width, car2_height, car2_bits);
         }
       }
-    } while (u8g2.nextPage());
+    } 
+    while (u8g2.nextPage());
     if (pos == 21) {
       delay(3000);
     }
