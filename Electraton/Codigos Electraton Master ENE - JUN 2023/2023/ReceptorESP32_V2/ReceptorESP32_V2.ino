@@ -1,48 +1,36 @@
-#include <RH_NRF24.h>
-#include <EEPROM.h>
+#include <SPI.h>
+#include <nRF24L01.h>
+#include <RF24.h>
 
-RH_NRF24 nrf24(2, 4);
+RF24 radio(4, 2); // CE, CSN
 
-void setup() 
-{
-  Serial.begin(115200);
-  Serial.println("Receiver Started, ID: ");
-  nrf24.init();
-  nrf24.setChannel(3);
-  nrf24.setRF(RH_NRF24::DataRate2Mbps, RH_NRF24::TransmitPower0dBm);
+const byte address[6] = "00001";
+
+void setup() {
+  Serial.begin(9600);
+  radio.begin();
+  radio.openReadingPipe(0, address);
+  radio.setPALevel(RF24_PA_MIN);
+  radio.startListening();
 }
 
-void loop() 
-{
-  if (nrf24.available())
-  {
-    uint8_t buf[RH_NRF24_MAX_MESSAGE_LEN];
-    uint8_t len = sizeof(buf);
-    if (nrf24.recv(buf, &len))
-    {
-      //Send a reply
-      uint8_t sdata[] = "Data Received.";
-      nrf24.send(sdata, sizeof(sdata));
-      nrf24.waitPacketSent();
-
-      int humidity = buf[0];
-      int temperature = buf[1];
-      int deviceID = buf[2];
-
-      Serial.println("--- Data Received ---");
-      
-      Serial.print("Device ID: ");
-      Serial.print(deviceID);
-      Serial.print(", Temperature: ");
-      Serial.print(temperature);
-      Serial.print(", Humidity: ");
-      Serial.print(humidity);
-
-      delay(1000);
-    }
+void loop() {
+  if (radio.available()) {
+    char text[4];
+    radio.read(&text, sizeof(text));
+    int hum = text[0];
+    int temp = text[1];
+    int ID = text[2];
+    int rx = text[3];
+    Serial.print("hum: ");
+    Serial.println(hum);
+    Serial.print("temp: ");
+    Serial.println(temp);
+    Serial.print("ID: ");
+    Serial.println(ID);
+    Serial.print("random: ");
+    Serial.println(rx);
+    Serial.println("");
   }
-  else 
-  {
-
-  }
+   
 }
