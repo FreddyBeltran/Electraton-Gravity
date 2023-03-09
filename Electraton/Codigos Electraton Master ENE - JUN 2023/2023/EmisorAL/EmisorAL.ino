@@ -1,38 +1,36 @@
-#include <RH_NRF24.h>
-#include "DHT.h"
-#include <EEPROM.h>
+/*
+* Arduino Wireless Communication Tutorial
+*     Example 1 - Transmitter Code
+*                
+* by Dejan Nedelkovski, www.HowToMechatronics.com
+* 
+* Library: TMRh20/RF24, https://github.com/tmrh20/RF24/
+*/
 
-RH_NRF24 nrf24(8,9); // Definimos la radio
+#include <SPI.h>
+#include <nRF24L01.h>
+#include <RF24.h>
+#include "DHT.h"
 
 const int DHTPIN = 2;
 #define DHTTYPE DHT11
 DHT dht(DHTPIN, DHTTYPE);
-
-int deviceID = EEPROM.read(0);
 int humidity, temperature;
+const int tempSensID = 0;  //
+
+RF24 radio(9, 8);  // CE, CSN
+
+const byte address[6] = "00001";
+
+int data[4];
 
 void setup() {
-  Serial.begin(115200);
   dht.begin();
-
-  while(!Serial) // To wait for the serial port to get started (Arduino Leonardo)
-  ;
-  
-  if (!nrf24.init())
-  {
-    Serial.println("init failed");
-  }
-  // Defaults after init are 2.402 GHz (channel 2), 2Mbps, 0dBm
-  if (!nrf24.setChannel(3))
-  {
-    Serial.println("setChannel Failed");
-  }
-  if (!nrf24.setRF(RH_NRF24::DataRate2Mbps, RH_NRF24::TransmitPower0dBm))
-  { 
-    Serial.println("setRF failed");
-  }
-  Serial.println("Transmitter started");
-
+  Serial.begin(9600);
+  radio.begin();
+  radio.openWritingPipe(address);
+  radio.setPALevel(RF24_PA_MIN);
+  radio.stopListening();
 }
 
 void loop() {
@@ -40,61 +38,40 @@ void loop() {
   humidity = dht.readHumidity();
   temperature = dht.readTemperature();
 
-  if (isnan(humidity) || isnan(temperature))
-  {
+  if (isnan(humidity) || isnan(temperature)) {
     Serial.println(F("Failed to read from sensor!"));
     return;
   }
 
-  Serial.println("Sending to getaway");
-  uint8_t data[4];
+
+  Serial.println("-------------- Data sent --------------");
 
   data[0] = humidity;
+  Serial.print("Humedad: ");
+  Serial.println(humidity);
+  char hum = data[0];
+
   data[1] = temperature;
-  data[2] = deviceID;
+    Serial.print("Temperatura: ");
+  Serial.println(temperature);
+  char temp = data[1];
 
-  Serial.println("------------- Measurments -------------");
-  Serial.print("Humidity: ");
-  Serial.print(data[0]);
+  data[2] = tempSensID;
+  Serial.print("ID: ");
+  Serial.println(tempSensID);
+  char ID = data[2];
 
-  Serial.print(", Temperature: ");
-  Serial.print(data[1]);
+  data[3] = 4;
+  Serial.print("Num Random: ");
+  Serial.println(4);
+  char x = data[3];
 
-  Serial.print(", ID: ");
-  Serial.print(data[2]);
-  Serial.println();
+  // String s = String(data);
 
-  // Send to receptor via nrf24
-  nrf24.send(data, sizeof(data));
-  nrf24.waitPacketSent();
-
-  // Wait for a reply
-  uint8_t buf(RH_NRF24_MAX_MESSAGE_LEN);
-  uint8_t len = sizeof(buf);
-
-  if (nrf24.waitAvailableTimeout(1000))
-  {
-    // We should have a reply now
-    if (nrf24.recv(buf, &len))
-    {
-      Serial.print("got reply: ");
-      Serial.println((char*)buf);
-    }
-    else
-    {
-      Serial.println("recv failed");
-    }
-  }
-  else
-  {
-    Serial.println("No reply.");
-  }
-  delay(5000);
+  const char text[] = {hum, temp, ID, x};
+  //int newhum = text[0];
+  //Serial.println(newhum);
+  radio.write(&text, sizeof(text));
+  //radio.write(&data, sizeof(data));
+  delay(1000);
 }
-
-
-
-
-
-
-
