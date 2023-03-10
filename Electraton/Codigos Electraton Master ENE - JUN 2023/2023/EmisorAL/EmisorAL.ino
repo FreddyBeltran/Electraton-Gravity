@@ -8,7 +8,8 @@
 */
 
 
-// Hola este es mi cambio 
+// Hola este es mi cambio
+// Perfecto, cambio recibido
 
 #include <SPI.h>
 #include <nRF24L01.h>
